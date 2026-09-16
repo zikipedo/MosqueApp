@@ -1471,7 +1471,7 @@ const render = () => {
     <div class="prayer-overlay">
       <div class="overlay-symbol">م</div>
       <span class="eyebrow">MOMENT DE PRIÈRE · IQAMAH</span>
-      <h2>Lignes serrées,<br><em>téléphones éteints...</em></h2>
+      <h2>Alignez vos rangs (collez vos épaules et fermez les espaces vides),<br><em>téléphones éteints...</em></h2>
       <p>La salle retrouvera sa lumière dans quelques instants.</p>
       <button id="end-prayer">Terminer le mode prière</button>
     </div>
