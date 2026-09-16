@@ -1,0 +1,1 @@
+ALTER TABLE "Mosque" ADD COLUMN "imamName" TEXT NOT NULL DEFAULT '';

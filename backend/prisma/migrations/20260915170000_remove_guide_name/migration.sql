@@ -1,0 +1,1 @@
+ALTER TABLE "Mosque" DROP COLUMN "guideName";

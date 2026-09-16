@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Mosque {
+  id             String         @id @default(cuid())
+  name           String
+  city           String
+  phone          String         @default("")
+  logoUrl        String?
+  contactEmail   String         @default("contact@masjid-al-nour.ml")
+  timezone       String         @default("Africa/Bamako")
+  maxPrayerMins  Int            @default(25)
+  prayerDurations Json          @default("{}")
+  ticker         String         @default("")
+  notificationDelay Int         @default(15) // minutes before prayer
+  jumuahTime     String         @default("13:00") // heure du Jumu'ah le vendredi, format HH:MM
+  imamName       String         @default("")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  prayerTimes    PrayerTime[]
+  announcements  Announcement[]
+  holidays       Holiday[]
+  pushSubscriptions PushSubscription[]
+}
+
+model PrayerTime {
+  id        String   @id @default(cuid())
+  mosqueId  String
+  name      String
+  arabic    String
+  adhan     String
+  iqamah    String
+  sortOrder Int
+  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  @@unique([mosqueId, name])
+  @@index([mosqueId, sortOrder])
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  mosqueId    String
+  text        String
+  mode        String   @default("text-display") // 'text-display' | 'text-voice' | 'voice'
+  audioUrl    String?
+  audioName   String?
+  times       String[] @default([])              // heures de diffusion quotidiennes, format "HH:MM"
+  days        Int      @default(1)                // nombre de jours pendant lesquels l'annonce se répète
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  mosque      Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  @@index([mosqueId, isPublished, createdAt])
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  mosqueId  String
+  date      DateTime
+  label     String?
+  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  @@unique([mosqueId, date])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  mosqueId  String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  @@index([mosqueId])
+}

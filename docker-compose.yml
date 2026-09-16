@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: masjid-al-nour-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mosque
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mosque_dev_password}
+      POSTGRES_DB: mosque
+    ports:
+      - "5432:5432"
+    volumes:
+      - mosque_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mosque -d mosque"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: masjid-al-nour-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://mosque:${POSTGRES_PASSWORD:-mosque_dev_password}@postgres:5432/mosque?schema=public
+      VAPID_SUBJECT: mailto:admin@masjid-al-nour.ml
+      VAPID_PUBLIC_KEY: ""
+      VAPID_PRIVATE_KEY: ""
+      PORT: 3000
+      CORS_ORIGIN: http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  mosque_postgres_data:
