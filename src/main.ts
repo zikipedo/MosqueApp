@@ -5,14 +5,14 @@ import TasbihCounter from './components/TasbihCounter.jsx'
 
 type Prayer = { name: string; arabic: string; adhan: string; iqamah: string; icon: string }
 const fallbackPrayers: Prayer[] = [
-  { name: 'Fajr',    arabic: 'الفجر', adhan: '05:18', iqamah: '05:35', icon: '☼' },
-  { name: 'Dhuhr',   arabic: 'الظهر', adhan: '13:08', iqamah: '13:25', icon: '◉' },
-  { name: 'Asr',     arabic: 'العصر', adhan: '16:31', iqamah: '16:48', icon: '◒' },
+  { name: 'Fajr', arabic: 'الفجر', adhan: '05:18', iqamah: '05:35', icon: '☼' },
+  { name: 'Dhuhr', arabic: 'الظهر', adhan: '13:08', iqamah: '13:25', icon: '◉' },
+  { name: 'Asr', arabic: 'العصر', adhan: '16:31', iqamah: '16:48', icon: '◒' },
   { name: 'Maghrib', arabic: 'المغرب', adhan: '19:22', iqamah: '19:27', icon: '◐' },
-  { name: 'Isha',    arabic: 'العشاء', adhan: '20:39', iqamah: '20:55', icon: '☾' },
+  { name: 'Isha', arabic: 'العشاء', adhan: '20:39', iqamah: '20:55', icon: '☾' },
 ]
 let prayers: Prayer[] = [...fallbackPrayers]
-const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
 
 // ── Temps réel ──────────────────────────────────────────────
 let now = new Date()   // Heure système réelle
@@ -166,10 +166,10 @@ const addCalendarEvent = (date: string, event: CalendarEvent) => {
 const loadCalendarEvents = async () => {
   const year = mobileCalendarDate.getFullYear()
   const month = String(mobileCalendarDate.getMonth() + 1).padStart(2, '0')
-  
+
   // Clear existing events for the current month
   calendarEvents.clear()
-  
+
   // Jours fériés officiels du Mali (civils)
   const maliHolidays = [
     { date: `${year}-01-01`, label: "Jour de l'an" },
@@ -180,9 +180,9 @@ const loadCalendarEvents = async () => {
     { date: `${year}-09-22`, label: "Fête de l'Indépendance" },
     { date: `${year}-12-25`, label: "Noël" },
   ]
-  
+
   maliHolidays.forEach((holiday) => addCalendarEvent(holiday.date, { label: holiday.label, kind: 'holiday' }))
-  
+
   // Calendrier hégirien pour les jours fériés musulmans à date variable
   try {
     const response = await fetch(`https://api.aladhan.com/v1/gToHCalendar/${month}/${year}`)
@@ -459,12 +459,12 @@ const getNextPrayer = () => {
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
   const dayOfWeek = now.getDay() // 0 = Sunday, 5 = Friday, 6 = Saturday
   const isFriday = dayOfWeek === 5
-  
+
   // Le vendredi, créer une prière virtuelle "Jumu'ah" pour la logique de la prochaine prière
   if (isFriday) {
     const jumuahMinutes = toMinutes(jumuahTime)
     const nextFromJumuah = prayers.find((prayer) => toMinutes(prayer.adhan) > currentMinutes && prayer.name !== 'Dhuhr') || prayers.find((p) => p.name !== 'Dhuhr') || prayers[0]
-    
+
     // Si l'heure actuelle est avant le Jumu'ah, retourner Jumu'ah comme prochaine prière
     if (currentMinutes < jumuahMinutes) {
       return { name: 'Jumu\'ah', arabic: 'الجمعة', adhan: jumuahTime, iqamah: jumuahTime, icon: '✦' }
@@ -472,7 +472,7 @@ const getNextPrayer = () => {
     // Sinon, retourner la première prière après le Jumu'ah (qui n'est pas Dhuhr)
     return nextFromJumuah
   }
-  
+
   // Les autres jours, logique normale
   return prayers.find((prayer) => toMinutes(prayer.adhan) > currentMinutes) || prayers[0]
 }
@@ -481,7 +481,7 @@ const refreshNextPrayerUI = () => {
   const nextPrayer = getNextPrayer()
   const dayOfWeek = now.getDay() // 5 = Friday
   const isFriday = dayOfWeek === 5
-  
+
   document.querySelectorAll<HTMLElement>('.prayer-card').forEach((card, index) => {
     const prayer = prayers[index]
     // Le vendredi, ne pas marquer Dhuhr comme "prochaine" si Jumu'ah est la prochaine prière
@@ -540,13 +540,13 @@ const fetchSunriseTime = async () => {
 }
 
 // ── Formatage des dates en TEMPS RÉEL ───────────────────────
-const formatDate        = (date: Date) => date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+const formatDate = (date: Date) => date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 const formatDayAndMonth = (date: Date) => `${monthNames[date.getMonth()].toUpperCase()} <b>${date.getDate()}</b>`
-const formatWeekday     = (date: Date) => date.toLocaleDateString('fr-FR', { weekday: 'long' }).toUpperCase()
-const formatHijriShort  = (date: Date) => {
+const formatWeekday = (date: Date) => date.toLocaleDateString('fr-FR', { weekday: 'long' }).toUpperCase()
+const formatHijriShort = (date: Date) => {
   // Retourne ex. "VENDREDI · 12 SHA'BAN 1448"
   const weekday = date.toLocaleDateString('fr-FR', { weekday: 'long' }).toUpperCase()
-  const hijri   = date.toLocaleDateString('fr-FR-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()
+  const hijri = date.toLocaleDateString('fr-FR-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()
   return `${weekday} · ${hijri}`
 }
 const formatCountdownHMS = (prayer: Prayer) => {
@@ -679,15 +679,15 @@ const checkPrayerEvents = () => {
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
   const currentSeconds = now.getSeconds()
   const dayOfWeek = now.getDay() // 5 = Friday
-  
+
   prayers.forEach((prayer) => {
     // Le vendredi, ignorer Dhuhr car il est remplacé par Jumu'ah
     if (dayOfWeek === 5 && prayer.name === 'Dhuhr') return
-    
-    if (currentMinutes === toMinutes(prayer.adhan)  && currentSeconds === 0) triggerAdhanForPrayer(prayer)
+
+    if (currentMinutes === toMinutes(prayer.adhan) && currentSeconds === 0) triggerAdhanForPrayer(prayer)
     if (currentMinutes === toMinutes(prayer.iqamah) && currentSeconds === 0) triggerIqamahForPrayer(prayer)
   })
-  
+
   // Le vendredi, déclencher les événements du Jumu'ah
   if (dayOfWeek === 5) {
     const jumuahMinutes = toMinutes(jumuahTime)
@@ -699,10 +699,10 @@ const checkPrayerEvents = () => {
 
 const calendar = () => {
   const offset = (new Date(mobileCalendarDate.getFullYear(), mobileCalendarDate.getMonth(), 1).getDay() + 6) % 7
-  const days   = new Date(mobileCalendarDate.getFullYear(), mobileCalendarDate.getMonth() + 1, 0).getDate()
-  const cells  = Array.from({ length: offset + days }, (_, i) => i < offset ? '' : String(i - offset + 1))
+  const days = new Date(mobileCalendarDate.getFullYear(), mobileCalendarDate.getMonth() + 1, 0).getDate()
+  const cells = Array.from({ length: offset + days }, (_, i) => i < offset ? '' : String(i - offset + 1))
   return cells.map((day) => {
-    const date   = day ? new Date(mobileCalendarDate.getFullYear(), mobileCalendarDate.getMonth(), Number(day)) : undefined
+    const date = day ? new Date(mobileCalendarDate.getFullYear(), mobileCalendarDate.getMonth(), Number(day)) : undefined
     const events = date ? calendarEvents.get(dateKey(date)) || [] : []
     const labels = events.map((e) => e.label).join(' · ')
     const hasHoliday = events.some((e) => e.kind === 'holiday')
@@ -748,9 +748,9 @@ const requestMobileNotifications = async () => {
   if (!('Notification' in window)) return
   const permission = await Notification.requestPermission()
   if (permission === 'granted') {
-    const registration  = await navigator.serviceWorker.ready
+    const registration = await navigator.serviceWorker.ready
     const configResponse = await fetch(`${apiBaseUrl}/mobile/push-config`)
-    const config        = await configResponse.json() as { publicKey: string | null }
+    const config = await configResponse.json() as { publicKey: string | null }
     if (!config.publicKey) return
     const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: config.publicKey })
     await fetch(`${apiBaseUrl}/mobile/mosques/${mosqueId}/push-subscriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subscription.toJSON()) })
@@ -809,7 +809,7 @@ const syncFromServer = async () => {
           : (typeof dashboard.imamName === 'string' ? dashboard.imamName : (typeof dashboard.guideName === 'string' ? dashboard.guideName : undefined)))
       if (incomingImam !== undefined) {
         imamName = incomingImam
-        try { localStorage.setItem('mosque-imam-name', incomingImam) } catch {}
+        try { localStorage.setItem('mosque-imam-name', incomingImam) } catch { }
       }
     }
     if (document.activeElement?.id !== 'ticker' && typeof dashboard.ticker === 'string') ticker = dashboard.ticker
@@ -932,16 +932,16 @@ const renderQuranView = () => {
     const body = quranAyahsLoading
       ? '<p class="mobile-intro">Chargement de la sourate...</p>'
       : quranAyahsError
-      ? '<p class="mobile-intro">Impossible de charger cette sourate. Vérifiez votre connexion puis réessayez.</p><button class="mobile-retry" id="quran-retry-surah">Réessayer</button>'
-      : `<div class="quran-ayahs">${quranAyahs.map((ayah) => `<article class="quran-ayah"><span class="quran-ayah-number">${ayah.numberInSurah}</span><p class="quran-arabic" dir="rtl">${ayah.arabic}</p><p class="quran-translation">${ayah.translation}</p></article>`).join('')}</div>`
+        ? '<p class="mobile-intro">Impossible de charger cette sourate. Vérifiez votre connexion puis réessayez.</p><button class="mobile-retry" id="quran-retry-surah">Réessayer</button>'
+        : `<div class="quran-ayahs">${quranAyahs.map((ayah) => `<article class="quran-ayah"><span class="quran-ayah-number">${ayah.numberInSurah}</span><p class="quran-arabic" dir="rtl">${ayah.arabic}</p><p class="quran-translation">${ayah.translation}</p></article>`).join('')}</div>`
     return `<section class="mobile-section quran-reader"><button class="mobile-back" id="quran-back">← Mes sourates</button><span class="mobile-kicker">SOURATE ${quranOpenSurah}</span><h1>${surah?.englishName || ''}<br><em>${surah?.englishNameTranslation || ''}</em></h1><p class="mobile-intro">${surah?.numberOfAyahs || ''} versets · ${surah?.revelationType === 'Meccan' ? 'Mecquoise' : 'Médinoise'}</p>${body}</section>`
   }
 
   const body = quranSurahsLoading
     ? '<p class="mobile-intro">Chargement des 114 sourates...</p>'
     : quranSurahsError
-    ? '<p class="mobile-intro">Le Coran n\'a pas pu être chargé. Vérifiez votre connexion puis réessayez.</p><button class="mobile-retry" id="quran-retry-list">Réessayer</button>'
-    : `<div class="quran-surah-list">${quranSurahs.map((surah) => `<div class="quran-surah-row" data-surah="${surah.number}" role="button" tabindex="0"><span class="quran-surah-index">${surah.number}</span><div><strong>${surah.englishName}</strong><small>${surah.englishNameTranslation} · ${surah.numberOfAyahs} versets</small><audio controls preload="none" data-surah="${surah.number}" src="${quranAudioUrl(surah.number)}" aria-label="Écouter ${surah.englishName}"></audio></div><span class="quran-surah-arabic">${surah.name}</span></div>`).join('')}</div>`
+      ? '<p class="mobile-intro">Le Coran n\'a pas pu être chargé. Vérifiez votre connexion puis réessayez.</p><button class="mobile-retry" id="quran-retry-list">Réessayer</button>'
+      : `<div class="quran-surah-list">${quranSurahs.map((surah) => `<div class="quran-surah-row" data-surah="${surah.number}" role="button" tabindex="0"><span class="quran-surah-index">${surah.number}</span><div><strong>${surah.englishName}</strong><small>${surah.englishNameTranslation} · ${surah.numberOfAyahs} versets</small><audio controls preload="none" data-surah="${surah.number}" src="${quranAudioUrl(surah.number)}" aria-label="Écouter ${surah.englishName}"></audio></div><span class="quran-surah-arabic">${surah.name}</span></div>`).join('')}</div>`
   return `<section class="mobile-section"><span class="mobile-kicker">LE SAINT CORAN</span><h1>Lire<br><em>le Coran.</em></h1><p class="mobile-intro">Les 114 sourates, en arabe avec traduction française.</p>${body}</section>`
 }
 
@@ -966,10 +966,10 @@ const renderDiscoverView = () => {
   const body = discoverTopic === 'seerah'
     ? `<div class="seerah-timeline">${seerahMilestones.map((m) => `<article class="seerah-item"><time>${m.period}</time><h3>${m.title}</h3><p>${m.text}</p></article>`).join('')}</div>`
     : discoverTopic === 'piliers'
-    ? `<div class="pillar-list">${pillarsOfIslam.map((p, i) => `<article class="pillar-item"><span class="pillar-index">${i + 1}</span><div><strong>${p.title}</strong><small>${p.subtitle}</small><p>${p.text}</p></div></article>`).join('')}</div>`
-    : discoverTopic === 'adab'
-    ? `<div class="adab-list">${dailyAdab.map((a) => `<article class="adab-item"><h3>${a.title}</h3><p>${a.text}</p></article>`).join('')}</div>`
-    : `<div class="dua-list">${dailyDuas.map((dua) => `<article class="dua-item"><h3>${dua.title}</h3><p class="dua-arabic" dir="rtl">${dua.arabic}</p><p class="dua-transliteration">${dua.transliteration}</p><p>${dua.text}</p></article>`).join('')}</div>`
+      ? `<div class="pillar-list">${pillarsOfIslam.map((p, i) => `<article class="pillar-item"><span class="pillar-index">${i + 1}</span><div><strong>${p.title}</strong><small>${p.subtitle}</small><p>${p.text}</p></div></article>`).join('')}</div>`
+      : discoverTopic === 'adab'
+        ? `<div class="adab-list">${dailyAdab.map((a) => `<article class="adab-item"><h3>${a.title}</h3><p>${a.text}</p></article>`).join('')}</div>`
+        : `<div class="dua-list">${dailyDuas.map((dua) => `<article class="dua-item"><h3>${dua.title}</h3><p class="dua-arabic" dir="rtl">${dua.arabic}</p><p class="dua-transliteration">${dua.transliteration}</p><p>${dua.text}</p></article>`).join('')}</div>`
   return `<section class="mobile-section"><span class="mobile-kicker">DÉCOUVRIR L'ISLAM</span><h1>Grandir<br><em>dans la foi.</em></h1>${tabs}${body}</section>`
 }
 
@@ -981,18 +981,18 @@ const renderMobile = () => {
     return
   }
   const nextPrayer = getNextPrayer()
-  const eventRows  = mobileEvents()
+  const eventRows = mobileEvents()
   const content = mobileView === 'quran'
     ? renderQuranView()
     : mobileView === 'discover'
-    ? renderDiscoverView()
-    : mobileView === 'services'
-    ? renderToolsView()
-    : mobileView === 'prayers'
-    ? `<section class="mobile-section"><span class="mobile-kicker">HORAIRES EN DIRECT</span><h1>Les temps<br><em>de prière.</em></h1><div class="mobile-prayer-list">${prayers.map((p) => `<article class="mobile-prayer ${p.name === nextPrayer.name ? 'is-next' : ''}"><span class="mobile-prayer-icon">${p.icon}</span><div><strong>${p.name}</strong><small>${p.arabic}</small></div><div class="mobile-times"><span>ADHAN <b>${p.adhan}</b></span><span>IQAMAH <b>${p.iqamah}</b></span></div></article>`).join('')}</div></section>`
-    : mobileView === 'calendar'
-    ? `<section class="mobile-section"><span class="mobile-kicker">CALENDRIER DU SYSTÈME</span><h1>Les dates<br><em>importantes.</em></h1><p class="mobile-intro">Jours fériés et événements musulmans synchronisés automatiquement.</p><div class="mobile-calendar-container"><div class="mobile-calendar-header"><button id="prev-month" class="calendar-nav-btn"><i class="fas fa-chevron-left"></i></button><span class="calendar-month-title">${monthNames[mobileCalendarDate.getMonth()]} ${mobileCalendarDate.getFullYear()}</span><button id="next-month" class="calendar-nav-btn"><i class="fas fa-chevron-right"></i></button></div><div class="mobile-weekdays"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div class="mobile-calendar-days">${calendar()}</div></div><div class="mobile-events">${eventRows.length ? eventRows.map(([date, items]) => `<article><time>${new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</time><div>${items.map((item) => `<strong>${item.label}</strong><small>${item.kind === 'holiday' ? 'Jour chômé' : 'Événement musulman'}</small>`).join('')}</div></article>`).join('') : '<p class="mobile-intro">Synchronisation du calendrier en cours...</p>'}</div></section>`
-    : `<section class="mobile-home"><div class="mobile-hero-section"><div class="hero-content"><span class="mobile-kicker">${formatWeekday(now)}</span><h1>Assalamu<br><em>Alaykum</em></h1><p>Bienvenue à ${mosqueName}</p></div></div><div class="prayer-timeline"><div class="timeline-scroll">${prayers.map((p) => `<div class="prayer-item ${p.name === nextPrayer.name ? 'active' : ''}"><span class="prayer-icon">${p.icon}</span><div class="prayer-details"><strong>${p.name}</strong><small>${p.arabic}</small></div><div class="prayer-times-detail"><div class="time-row"><span class="time-label">ADHAN</span><span class="time-value">${p.adhan}</span></div><div class="time-row"><span class="time-label">IQAMAH</span><span class="time-value">${p.iqamah}</span></div></div></div>`).join('')}</div></div><article class="mobile-jumuah"><span class="jumuah-mark" aria-hidden="true">✦</span><div><span class="mobile-kicker">PRIÈRE DU VENDREDI</span><strong>Jumu'ah</strong><span class="jumuah-time">${jumuahTime} · Grande salle</span></div><span class="gold-arrow" aria-hidden="true">↗</span></article><div class="next-prayer-highlight"><div class="highlight-content"><span class="highlight-label">PROCHAINE PRIÈRE</span><h2>${nextPrayer.name}</h2><div class="countdown-container"><span class="countdown-time">${formatCountdown(nextPrayer)}</span><span class="countdown-label">min restantes</span></div></div><div class="highlight-icon"><i class="fas fa-mosque"></i></div></div><div class="quick-actions-grid"><button data-mobile-view="prayers" class="action-card"><i class="fas fa-sun"></i><span>Prières</span></button><button data-mobile-view="calendar" class="action-card"><i class="fas fa-calendar-alt"></i><span>Calendrier</span></button><button data-mobile-view="quran" class="action-card"><i class="fas fa-moon"></i><span>Coran</span></button><button data-mobile-view="discover" class="action-card"><i class="fas fa-star"></i><span>Découvrir</span></button></div><div class="daily-message"><div class="message-header"><i class="fas fa-bullhorn"></i><span>Message du jour</span></div><p>${announcement}</p></div></section>`
+      ? renderDiscoverView()
+      : mobileView === 'services'
+        ? renderToolsView()
+        : mobileView === 'prayers'
+          ? `<section class="mobile-section"><span class="mobile-kicker">HORAIRES EN DIRECT</span><h1>Les temps<br><em>de prière.</em></h1><div class="mobile-prayer-list">${prayers.map((p) => `<article class="mobile-prayer ${p.name === nextPrayer.name ? 'is-next' : ''}"><span class="mobile-prayer-icon">${p.icon}</span><div><strong>${p.name}</strong><small>${p.arabic}</small></div><div class="mobile-times"><span>ADHAN <b>${p.adhan}</b></span><span>IQAMAH <b>${p.iqamah}</b></span></div></article>`).join('')}</div></section>`
+          : mobileView === 'calendar'
+            ? `<section class="mobile-section"><span class="mobile-kicker">CALENDRIER DU SYSTÈME</span><h1>Les dates<br><em>importantes.</em></h1><p class="mobile-intro">Jours fériés et événements musulmans synchronisés automatiquement.</p><div class="mobile-calendar-container"><div class="mobile-calendar-header"><button id="prev-month" class="calendar-nav-btn"><i class="fas fa-chevron-left"></i></button><span class="calendar-month-title">${monthNames[mobileCalendarDate.getMonth()]} ${mobileCalendarDate.getFullYear()}</span><button id="next-month" class="calendar-nav-btn"><i class="fas fa-chevron-right"></i></button></div><div class="mobile-weekdays"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div class="mobile-calendar-days">${calendar()}</div></div><div class="mobile-events">${eventRows.length ? eventRows.map(([date, items]) => `<article><time>${new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</time><div>${items.map((item) => `<strong>${item.label}</strong><small>${item.kind === 'holiday' ? 'Jour chômé' : 'Événement musulman'}</small>`).join('')}</div></article>`).join('') : '<p class="mobile-intro">Synchronisation du calendrier en cours...</p>'}</div></section>`
+            : `<section class="mobile-home"><div class="mobile-hero-section"><div class="hero-content"><span class="mobile-kicker">${formatWeekday(now)}</span><h1>Assalamu<br><em>Alaykum</em></h1><p>Bienvenue à ${mosqueName}</p></div></div><div class="prayer-timeline"><div class="timeline-scroll">${prayers.map((p) => `<div class="prayer-item ${p.name === nextPrayer.name ? 'active' : ''}"><span class="prayer-icon">${p.icon}</span><div class="prayer-details"><strong>${p.name}</strong><small>${p.arabic}</small></div><div class="prayer-times-detail"><div class="time-row"><span class="time-label">ADHAN</span><span class="time-value">${p.adhan}</span></div><div class="time-row"><span class="time-label">IQAMAH</span><span class="time-value">${p.iqamah}</span></div></div></div>`).join('')}</div></div><article class="mobile-jumuah"><span class="jumuah-mark" aria-hidden="true">✦</span><div><span class="mobile-kicker">PRIÈRE DU VENDREDI</span><strong>Jumu'ah</strong><span class="jumuah-time">${jumuahTime} · Grande salle</span></div><span class="gold-arrow" aria-hidden="true">↗</span></article><div class="next-prayer-highlight"><div class="highlight-content"><span class="highlight-label">PROCHAINE PRIÈRE</span><h2>${nextPrayer.name}</h2><div class="countdown-container"><span class="countdown-time">${formatCountdown(nextPrayer)}</span><span class="countdown-label">min restantes</span></div></div><div class="highlight-icon"><i class="fas fa-mosque"></i></div></div><div class="quick-actions-grid"><button data-mobile-view="prayers" class="action-card"><i class="fas fa-sun"></i><span>Prières</span></button><button data-mobile-view="calendar" class="action-card"><i class="fas fa-calendar-alt"></i><span>Calendrier</span></button><button data-mobile-view="quran" class="action-card"><i class="fas fa-moon"></i><span>Coran</span></button><button data-mobile-view="discover" class="action-card"><i class="fas fa-star"></i><span>Découvrir</span></button></div><div class="daily-message"><div class="message-header"><i class="fas fa-bullhorn"></i><span>Message du jour</span></div><p>${announcement}</p></div></section>`
 
   app.innerHTML = `<div class="mobile-app"><header class="mobile-header"><button class="mobile-brand" data-mobile-view="home">${mosqueLogoUrl ? `<img src="${mosqueLogoUrl}" alt="${mosqueName}" class="mobile-logo-img">` : '<span>م</span>'}<div class="brand-name"><strong>${mosqueName}</strong><small>${mosqueCity}, Mali</small></div></button><time id="mobile-clock">${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</time><button class="mobile-bell" id="mobile-notification-header" aria-label="Notifications"><i class="fas fa-bell ${scheduledAnnouncements.length > 0 ? 'animated-bell has-notification' : ''}"></i></button></header><main>${content}</main><footer class="mobile-developer-credit">Application développée par GDA Mali</footer><nav class="mobile-nav"><button class="${mobileView === 'home' ? 'active' : ''}" data-mobile-view="home"><i class="fas fa-home"></i><small>Accueil</small></button><button class="${mobileView === 'prayers' ? 'active' : ''}" data-mobile-view="prayers"><i class="fas fa-sun"></i><small>Prières</small></button><button class="${mobileView === 'calendar' ? 'active' : ''}" data-mobile-view="calendar"><i class="fas fa-calendar-alt"></i><small>Calendrier</small></button><button class="${mobileView === 'quran' ? 'active' : ''}" data-mobile-view="quran"><i class="fas fa-moon"></i><small>Coran</small></button><button class="${mobileView === 'discover' ? 'active' : ''}" data-mobile-view="discover"><i class="fas fa-star"></i><small>Découvrir</small></button>${mobileToolView === 'list' ? `<button class="${mobileView === 'services' ? 'active' : ''}" data-mobile-view="services"><i class="fas fa-ellipsis-h"></i><small>Mes outils</small></button>` : ''}</nav></div>`
 
@@ -1123,7 +1123,7 @@ const renderMobile = () => {
   document.querySelector<HTMLButtonElement>('#mobile-call')?.addEventListener('click', () => { window.location.href = `tel:${mosquePhone || '+224620000000'}` })
   document.querySelector<HTMLButtonElement>('#mobile-route-home')?.addEventListener('click', openMosqueRoute)
   document.querySelector<HTMLButtonElement>('#mobile-share')?.addEventListener('click', () => void shareMobileApp())
-  
+
   // Calendar navigation
   document.querySelector<HTMLButtonElement>('#prev-month')?.addEventListener('click', () => {
     mobileCalendarDate.setMonth(mobileCalendarDate.getMonth() - 1)
@@ -1191,9 +1191,9 @@ const render = () => {
       </div>
       <div class="top-date">${formatDate(now).toUpperCase()} <span>·</span> ${mosqueCity.toUpperCase()}</div>
       ${isAdminApp
-        ? '<div class="admin-label">RÉGIE PRIVÉE</div>'
-        : '<div class="live"><i></i> EN DIRECT</div>'
-      }
+      ? '<div class="admin-label">RÉGIE PRIVÉE</div>'
+      : '<div class="live"><i></i> EN DIRECT</div>'
+    }
     </header>
 
     <main class="${activeView === 'home' ? '' : 'hidden'}">
@@ -1223,7 +1223,7 @@ const render = () => {
           </div>
           <div class="prayer-list">
             ${prayers.map((prayer, index) => {
-              return `
+      return `
               <article class="prayer-card ${index === 1 ? 'next' : ''}">
                 <div class="prayer-top">
                   <span class="prayer-icon">${prayer.icon}</span>
@@ -1238,7 +1238,7 @@ const render = () => {
                   <div><small>IQAMAH</small><time>${prayer.iqamah || '--:--'}</time></div>
                 </div>
               </article>`
-            }).join('')}
+    }).join('')}
           </div>
           <div class="special-prayers-row">
             <div class="jumuah">
@@ -1266,14 +1266,14 @@ const render = () => {
           </div>
           <div class="public-scan-card">
             ${hasMobileAppUrl
-              ? `<img src="${qrDownloadUrl}" alt="QR code de l'application mobile" width="88" height="88">`
-              : `<div class="scan-card-missing">⚠</div>`}
+      ? `<img src="${qrDownloadUrl}" alt="QR code de l'application mobile" width="88" height="88">`
+      : `<div class="scan-card-missing">⚠</div>`}
             <div>
-              <span class="eyebrow">APPLICATION MOBILE</span>
+              <span class="eyebrow"><strong>APPLICATION MOBILE</strong></span>
               <strong>Emportez la mosquée avec vous</strong>
               <small>${hasMobileAppUrl
-                ? 'Coran complet, vie du Prophète ﷺ et adab au quotidien — scannez pour ouvrir depuis votre téléphone.'
-                : "Configurez VITE_PUBLIC_HOST (ou VITE_PUBLIC_URL en production) dans le fichier .env pour activer le QR code."}</small>
+             ? 'Coran complet, vie du Prophète ﷺ et adab au quotidien — scannez pour ouvrir depuis votre téléphone.'
+             : "Configurez VITE_PUBLIC_HOST (ou VITE_PUBLIC_URL en production) dans le fichier .env pour activer le QR code."}</small>
             </div>
           </div>
         </section>
@@ -1395,16 +1395,16 @@ const render = () => {
             <div class="scheduled-list">
               <span class="eyebrow">ANNONCES PROGRAMMÉES</span>
               ${scheduledAnnouncements.map((item) => {
-                const elapsed = Math.floor((new Date(dateKey(now)).getTime() - new Date(item.createdAt).getTime()) / 86400000)
-                const remaining = Math.max(0, item.days - elapsed)
-                const icon = item.mode === 'voice' ? '🎙' : item.mode === 'text-voice' ? '🔊' : '🗒'
-                const preview = item.text || (item.mode === 'voice' ? 'Message vocal' : '')
-                return `<div class="scheduled-item">
+        const elapsed = Math.floor((new Date(dateKey(now)).getTime() - new Date(item.createdAt).getTime()) / 86400000)
+        const remaining = Math.max(0, item.days - elapsed)
+        const icon = item.mode === 'voice' ? '🎙' : item.mode === 'text-voice' ? '🔊' : '🗒'
+        const preview = item.text || (item.mode === 'voice' ? 'Message vocal' : '')
+        return `<div class="scheduled-item">
                   <span class="scheduled-icon">${icon}</span>
                   <div><strong>${preview.length > 56 ? preview.slice(0, 56) + '…' : preview}</strong><small>${item.times.join(' · ')} · ${remaining} j restant${remaining > 1 ? 's' : ''}</small></div>
                   <button type="button" class="scheduled-delete" data-delete-id="${item.id}" aria-label="Supprimer cette annonce">✕</button>
                 </div>`
-              }).join('')}
+      }).join('')}
             </div>
           ` : ''}
         </section>
@@ -1489,7 +1489,7 @@ const bindEvents = () => {
   const systemCalendar = document.querySelector<HTMLElement>('.calendar-settings')
   if (systemCalendar) {
     const events = [...calendarEvents.entries()]
-      .filter(([date]) => date.startsWith(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`))
+      .filter(([date]) => date.startsWith(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`))
       .sort(([a], [b]) => a.localeCompare(b))
     systemCalendar.innerHTML = `<div class="panel-title"><div><span class="eyebrow">CALENDRIER DU SYSTÈME</span><h2>Événements du mois</h2></div><span class="small-muted">Synchronisé automatiquement</span></div><p class="panel-help">Jours fériés nationaux et événements musulmans détectés automatiquement.</p><div class="system-events">${events.length ? events.map(([date, items]) => `<div class="system-event"><time>${new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</time><span>${items.map((item) => `${item.kind === 'holiday' ? 'Jour chômé' : 'Événement musulman'} : ${item.label}`).join('<br>')}</span></div>`).join('') : '<p class="panel-help">Synchronisation en cours...</p>'}</div>`
   }
@@ -1531,16 +1531,16 @@ const bindEvents = () => {
       const val = chourouqInput.value.trim()
       customChourouqTime = val || null
       if (val) {
-        try { localStorage.setItem('mosque-chourouq-time', val) } catch {}
+        try { localStorage.setItem('mosque-chourouq-time', val) } catch { }
       } else {
-        try { localStorage.removeItem('mosque-chourouq-time') } catch {}
+        try { localStorage.removeItem('mosque-chourouq-time') } catch { }
       }
     }
     const jumuahInput = document.querySelector<HTMLInputElement>('#jumuah-time')
     if (jumuahInput?.value) {
       jumuahTime = jumuahInput.value
     }
-    await patchMosqueSettings({ prayerTimes, ...(jumuahTime ? { jumuahTime } : {}) }).catch(() => {})
+    await patchMosqueSettings({ prayerTimes, ...(jumuahTime ? { jumuahTime } : {}) }).catch(() => { })
     await syncFromServer()
     render()
   })
@@ -1611,7 +1611,7 @@ const bindEvents = () => {
   // Diffusion — programmer l'annonce : upload de l'audio si besoin, puis enregistrement côté serveur
   // (ainsi les autres appareils — écran public, mobile — la reçoivent via syncFromServer)
   document.querySelector<HTMLButtonElement>('#publish')?.addEventListener('click', () => { void publishScheduledAnnouncement() })
-  
+
   // Diffusion — publication instantanée
   document.querySelector<HTMLButtonElement>('#instant-publish')?.addEventListener('click', () => { void publishInstantAnnouncement() })
 
@@ -1674,7 +1674,7 @@ const bindEvents = () => {
 
     // Diffusion immédiate
     broadcastAnnouncement(mode, text, customAudioUrl || remoteAudioUrl || null)
-    
+
     // Nettoyage du formulaire
     draftText = ''; customAudioUrl = null; customAudioBlob = null; audioName = ''; draftMode = 'text-display'
     render()
@@ -1684,22 +1684,22 @@ const bindEvents = () => {
   document.querySelectorAll<HTMLButtonElement>('[data-delete-id]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.deleteId || ''
-      
+
       // Vérifier si l'annonce est actuellement affichée avant suppression
       const isCurrentlyDisplayed = hostMode === 'message' && scheduledAnnouncements.find(item => item.id === id)?.text === announcement
-      
+
       // Suppression immédiate de l'affichage local
       scheduledAnnouncements = scheduledAnnouncements.filter((item) => item.id !== id)
-      
+
       // Si une annonce est actuellement affichée (en mode message), l'effacer immédiatement
       if (isCurrentlyDisplayed) {
         hostMode = 'idle'
         darkScreen = false
         announcement = 'Bienvenue à la prière. Merci de garder le silence dans la salle.'
       }
-      
+
       render()
-      
+
       // Synchronisation avec le serveur (annonces déjà publiées)
       if (!id.startsWith('ann-')) {
         try {
@@ -1718,7 +1718,7 @@ const bindEvents = () => {
   document.querySelector<HTMLInputElement>('#mosque-name')?.addEventListener('input', (event) => { mosqueName = (event.target as HTMLInputElement).value })
   document.querySelector<HTMLInputElement>('#mosque-city')?.addEventListener('input', (event) => { mosqueCity = (event.target as HTMLInputElement).value })
   document.querySelector<HTMLInputElement>('#mosque-phone')?.addEventListener('input', (event) => { mosquePhone = (event.target as HTMLInputElement).value })
-  
+
   // Logo upload
   document.querySelector<HTMLInputElement>('#mosque-logo')?.addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement
@@ -1729,14 +1729,14 @@ const bindEvents = () => {
       render()
     }
   })
-  
+
   // Logo removal
   document.querySelector<HTMLButtonElement>('#remove-logo')?.addEventListener('click', () => {
     mosqueLogoUrl = null
     mosqueLogoBlob = null
     render()
   })
-  
+
   document.querySelector<HTMLButtonElement>('#save-identity')?.addEventListener('click', async () => {
     const name = document.querySelector<HTMLInputElement>('#mosque-name')?.value.trim() || ''
     const city = document.querySelector<HTMLInputElement>('#mosque-city')?.value.trim() || ''
@@ -1746,8 +1746,8 @@ const bindEvents = () => {
     mosqueCity = city
     mosquePhone = phone
     imamName = savedImamName
-    try { localStorage.setItem('mosque-imam-name', savedImamName) } catch {}
-    
+    try { localStorage.setItem('mosque-imam-name', savedImamName) } catch { }
+
     let remoteLogoUrl: string | undefined
     if (mosqueLogoBlob) {
       try {
@@ -1760,7 +1760,7 @@ const bindEvents = () => {
         }
       } catch { /* serveur indisponible */ }
     }
-    
+
     // Essayer de sauvegarder sur le serveur avec guideName (schéma actif) et repli sur imamName
     try {
       await patchMosqueSettings({ name, city, phone, guideName: savedImamName, ...(remoteLogoUrl ? { logoUrl: remoteLogoUrl } : {}) } as any)
@@ -1773,7 +1773,7 @@ const bindEvents = () => {
     }
     try {
       await syncFromServer() // Synchronisation immédiate après sauvegarde
-    } catch {}
+    } catch { }
     render()
   })
   let durationSaveTimer: number | undefined
@@ -1789,23 +1789,23 @@ const bindEvents = () => {
       // Enregistrement différé côté serveur pour ne pas spammer de requêtes pendant le glissement du curseur
       window.clearTimeout(durationSaveTimer)
       durationSaveTimer = window.setTimeout(async () => {
-        await patchMosqueSettings({ prayerDurations }).catch(() => {})
+        await patchMosqueSettings({ prayerDurations }).catch(() => { })
         await syncFromServer() // Synchronisation immédiate après sauvegarde
       }, 800)
     })
   })
-  
+
   // Notification delay settings
   const notificationDelayInput = document.querySelector<HTMLInputElement>('#notification-delay')
   const delayOutput = document.querySelector<HTMLOutputElement>('#delay-output')
   const saveNotificationDelayBtn = document.querySelector<HTMLButtonElement>('#save-notification-delay')
-  
+
   notificationDelayInput?.addEventListener('input', () => {
     const value = Number(notificationDelayInput.value || 15)
     notificationDelay = value
     if (delayOutput) delayOutput.textContent = `${value} min`
   })
-  
+
   saveNotificationDelayBtn?.addEventListener('click', async () => {
     try {
       await patchMosqueSettings({ notificationDelay })
@@ -1827,7 +1827,7 @@ const bindEvents = () => {
     labels.forEach((label) => label.textContent = ticker)
   })
   document.querySelector<HTMLButtonElement>('#save-ticker')?.addEventListener('click', async () => {
-    await patchMosqueSettings({ ticker }).catch(() => {})
+    await patchMosqueSettings({ ticker }).catch(() => { })
     await syncFromServer() // Synchronisation immédiate après sauvegarde
     render()
   })
@@ -1836,7 +1836,7 @@ const bindEvents = () => {
     render()
   })
   document.querySelector<HTMLInputElement>('#jumuah-time')?.addEventListener('change', async () => {
-    await patchMosqueSettings({ jumuahTime }).catch(() => {})
+    await patchMosqueSettings({ jumuahTime }).catch(() => { })
     await syncFromServer() // Synchronisation immédiate après sauvegarde
     render()
   })
@@ -1844,9 +1844,9 @@ const bindEvents = () => {
     const val = (event.target as HTMLInputElement).value
     customChourouqTime = val || null
     if (val) {
-      try { localStorage.setItem('mosque-chourouq-time', val) } catch {}
+      try { localStorage.setItem('mosque-chourouq-time', val) } catch { }
     } else {
-      try { localStorage.removeItem('mosque-chourouq-time') } catch {}
+      try { localStorage.removeItem('mosque-chourouq-time') } catch { }
     }
     const chourouqEl = document.querySelector<HTMLElement>('.chourouq-hour')
     if (chourouqEl) chourouqEl.textContent = getChourouqTime()
@@ -1855,9 +1855,9 @@ const bindEvents = () => {
     const val = (event.target as HTMLInputElement).value
     customChourouqTime = val || null
     if (val) {
-      try { localStorage.setItem('mosque-chourouq-time', val) } catch {}
+      try { localStorage.setItem('mosque-chourouq-time', val) } catch { }
     } else {
-      try { localStorage.removeItem('mosque-chourouq-time') } catch {}
+      try { localStorage.removeItem('mosque-chourouq-time') } catch { }
     }
     render()
   })
@@ -1879,7 +1879,7 @@ setInterval(() => {
   if (isMobileLayout()) {
     checkPrayerEvents()
     checkScheduledAnnouncements()
-    
+
     // Mise à jour légère mobile (sans re-render complet)
     const mobileCountdown = document.querySelector('.countdown-time')
     if (mobileCountdown) {
@@ -1890,7 +1890,7 @@ setInterval(() => {
     if (mobileClock) {
       mobileClock.textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     }
-    
+
     return
   }
 
@@ -1902,7 +1902,7 @@ setInterval(() => {
   // Mise à jour de l'horloge sans re-render complet
   const clock = document.querySelector('#clock')
   if (clock) clock.textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-  
+
   // Mise à jour du compte à rebours sur l'écran public
   const countdownElement = document.getElementById('public-countdown')
   if (countdownElement) {
