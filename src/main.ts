@@ -2,6 +2,7 @@ import './style.css'
 import React from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import TasbihCounter from './components/TasbihCounter.jsx'
+import postPrayerNoticeImage from './assets/avertisement 1.jpeg'
 
 type Prayer = { name: string; arabic: string; adhan: string; iqamah: string; icon: string }
 const fallbackPrayers: Prayer[] = [
@@ -42,6 +43,10 @@ let recorder: MediaRecorder | undefined
 let recordedChunks: Blob[] = []
 let prayerCycleTimer: number | undefined
 let prayerWarningTimer: number | undefined
+// Affiche de sensibilisation montrée sur l'écran public juste après l'écran de recueillement
+const POST_PRAYER_NOTICE_MS = 35 * 1000
+let postPrayerNotice = false
+let postPrayerNoticeTimer: number | undefined
 const prayerEventLocks = { adhan: new Set<string>(), iqamah: new Set<string>(), dayStamp: '' }
 const isMobileApp = window.location.pathname === '/mobile'
 const isMobileLayout = () => isMobileApp
@@ -609,6 +614,17 @@ const triggerAdhanForPrayer = (prayer: Prayer) => {
   playSimulatedAudio('adhan')
 }
 
+// Fin de l'écran de recueillement : affiche l'affiche 35 s sur l'écran public, puis retour au tableau de bord
+const endPrayerScreen = () => {
+  darkScreen = false; hostMode = 'idle'
+  if (postPrayerNoticeTimer) window.clearTimeout(postPrayerNoticeTimer)
+  if (!isMobileLayout() && !isAdminApp) {
+    postPrayerNotice = true
+    postPrayerNoticeTimer = window.setTimeout(() => { postPrayerNotice = false; render() }, POST_PRAYER_NOTICE_MS)
+  }
+  render()
+}
+
 const triggerIqamahForPrayer = (prayer: Prayer) => {
   if (prayerEventLocks.iqamah.has(prayer.name)) return
   prayerEventLocks.iqamah.add(prayer.name)
@@ -621,7 +637,7 @@ const triggerIqamahForPrayer = (prayer: Prayer) => {
     darkScreen = true; hostMode = 'prayer'; render()
     if (prayerCycleTimer) window.clearTimeout(prayerCycleTimer)
     const duration = prayerDurations[prayer.name] ?? maxPrayerMinutes
-    prayerCycleTimer = window.setTimeout(() => { darkScreen = false; hostMode = 'idle'; render() }, duration * 60 * 1000)
+    prayerCycleTimer = window.setTimeout(endPrayerScreen, duration * 60 * 1000)
   }, 2600)
 }
 
@@ -688,11 +704,11 @@ const checkPrayerEvents = () => {
     if (currentMinutes === toMinutes(prayer.iqamah) && currentSeconds === 0) triggerIqamahForPrayer(prayer)
   })
 
-  // Le vendredi, déclencher les événements du Jumu'ah
+  // Le vendredi, à l'heure du Jumu'ah définie dans l'admin : écran de recueillement (puis affiche 35 s)
   if (dayOfWeek === 5) {
     const jumuahMinutes = toMinutes(jumuahTime)
     if (currentMinutes === jumuahMinutes && currentSeconds === 0) {
-      triggerAdhanForPrayer({ name: 'Jumu\'ah', arabic: 'الجمعة', adhan: jumuahTime, iqamah: jumuahTime, icon: '✦' })
+      triggerIqamahForPrayer({ name: 'Jumu\'ah', arabic: 'الجمعة', adhan: jumuahTime, iqamah: jumuahTime, icon: '✦' })
     }
   }
 }
@@ -1421,6 +1437,11 @@ const render = () => {
                 <input class="duration-input" type="range" min="5" max="60" value="${prayerDurations[prayer.name] ?? maxPrayerMinutes}">
                 <output>${prayerDurations[prayer.name] ?? maxPrayerMinutes} min</output>
               </label>`).join('')}
+            <label class="duration-row" data-prayer="Jumu'ah">
+              <span><b>Jumu'ah</b><small>الجمعة</small></span>
+              <input class="duration-input" type="range" min="5" max="60" value="${prayerDurations['Jumu\'ah'] ?? maxPrayerMinutes}">
+              <output>${prayerDurations['Jumu\'ah'] ?? maxPrayerMinutes} min</output>
+            </label>
           </div>
         </section>
         <section class="settings-panel notification-settings">
@@ -1475,6 +1496,9 @@ const render = () => {
       <p>La salle retrouvera sa lumière dans quelques instants.</p>
       <button id="end-prayer">Terminer le mode prière</button>
     </div>
+
+    ${postPrayerNotice ? `<!-- Affiche après la prière -->
+    <div class="post-prayer-notice"><img src="${postPrayerNoticeImage}" alt="Ensemble, prenons soin de l'environnement de notre mosquée"></div>` : ''}
   </div>`
 
   bindEvents()
@@ -1820,7 +1844,10 @@ const bindEvents = () => {
     darkScreen = true; hostMode = 'prayer'; render()
     window.setTimeout(() => { darkScreen = false; hostMode = 'warning'; render(); window.setTimeout(() => { hostMode = 'idle'; render() }, 2000) }, Math.min(previewMinutes, 5) * 1000)
   })
-  document.querySelector<HTMLButtonElement>('#end-prayer')?.addEventListener('click', () => { darkScreen = false; hostMode = 'idle'; render() })
+  document.querySelector<HTMLButtonElement>('#end-prayer')?.addEventListener('click', () => {
+    if (prayerCycleTimer) window.clearTimeout(prayerCycleTimer)
+    endPrayerScreen()
+  })
   document.querySelector<HTMLInputElement>('#ticker')?.addEventListener('input', (event) => {
     ticker = (event.target as HTMLInputElement).value
     const labels = document.querySelectorAll('.ticker div span')
