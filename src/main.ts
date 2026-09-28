@@ -43,11 +43,12 @@ let recorder: MediaRecorder | undefined
 let recordedChunks: Blob[] = []
 let prayerCycleTimer: number | undefined
 let prayerWarningTimer: number | undefined
-// Affiche de sensibilisation montrée sur l'écran public juste après l'écran de recueillement
-const POST_PRAYER_NOTICE_MS = 35 * 1000
+// Affiche de sensibilisation montrée sur l'écran public 5 min avant chaque prière et juste après l'écran de recueillement
+const POST_PRAYER_NOTICE_MS = 3 * 60 * 1000
+const PRE_PRAYER_NOTICE_MINUTES = 5
 let postPrayerNotice = false
 let postPrayerNoticeTimer: number | undefined
-const prayerEventLocks = { adhan: new Set<string>(), iqamah: new Set<string>(), dayStamp: '' }
+const prayerEventLocks = { adhan: new Set<string>(), iqamah: new Set<string>(), notice: new Set<string>(), dayStamp: '' }
 const isMobileApp = window.location.pathname === '/mobile'
 const isMobileLayout = () => isMobileApp
 // QR code always points to production URL for consistency
@@ -614,16 +615,29 @@ const triggerAdhanForPrayer = (prayer: Prayer) => {
   playSimulatedAudio('adhan')
 }
 
-// Fin de l'écran de recueillement : affiche l'affiche 35 s sur l'écran public, puis retour au tableau de bord
+// Affiche l'affiche de sensibilisation 3 min sur l'écran public, puis retour au tableau de bord
+const showPrayerNotice = () => {
+  if (isMobileLayout() || isAdminApp) return
+  if (postPrayerNoticeTimer) window.clearTimeout(postPrayerNoticeTimer)
+  postPrayerNotice = true
+  postPrayerNoticeTimer = window.setTimeout(() => { postPrayerNotice = false; render() }, POST_PRAYER_NOTICE_MS)
+}
+
+// Fin de l'écran de recueillement : affiche l'affiche 3 min, puis retour au tableau de bord
 const endPrayerScreen = () => {
   darkScreen = false; hostMode = 'idle'
-  if (postPrayerNoticeTimer) window.clearTimeout(postPrayerNoticeTimer)
-  if (!isMobileLayout() && !isAdminApp) {
-    postPrayerNotice = true
-    postPrayerNoticeTimer = window.setTimeout(() => { postPrayerNotice = false; render() }, POST_PRAYER_NOTICE_MS)
-  }
+  showPrayerNotice()
   render()
 }
+
+// 5 min avant l'Iqamah : affiche l'affiche 3 min
+const triggerPrePrayerNotice = (prayerName: string) => {
+  if (prayerEventLocks.notice.has(prayerName)) return
+  prayerEventLocks.notice.add(prayerName)
+  showPrayerNotice()
+  render()
+}
+const minutesBefore = (time: string, delta: number) => (toMinutes(time) - delta + 1440) % 1440
 
 const triggerIqamahForPrayer = (prayer: Prayer) => {
   if (prayerEventLocks.iqamah.has(prayer.name)) return
@@ -691,6 +705,7 @@ const checkPrayerEvents = () => {
     prayerEventLocks.dayStamp = dayStamp
     prayerEventLocks.adhan.clear()
     prayerEventLocks.iqamah.clear()
+    prayerEventLocks.notice.clear()
   }
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
   const currentSeconds = now.getSeconds()
@@ -700,12 +715,14 @@ const checkPrayerEvents = () => {
     // Le vendredi, ignorer Dhuhr car il est remplacé par Jumu'ah
     if (dayOfWeek === 5 && prayer.name === 'Dhuhr') return
 
+    if (currentMinutes === minutesBefore(prayer.iqamah, PRE_PRAYER_NOTICE_MINUTES) && currentSeconds === 0) triggerPrePrayerNotice(prayer.name)
     if (currentMinutes === toMinutes(prayer.adhan) && currentSeconds === 0) triggerAdhanForPrayer(prayer)
     if (currentMinutes === toMinutes(prayer.iqamah) && currentSeconds === 0) triggerIqamahForPrayer(prayer)
   })
 
-  // Le vendredi, à l'heure du Jumu'ah définie dans l'admin : écran de recueillement (puis affiche 35 s)
+  // Le vendredi : affiche 5 min avant le Jumu'ah, puis à l'heure définie dans l'admin écran de recueillement (puis affiche 3 min)
   if (dayOfWeek === 5) {
+    if (currentMinutes === minutesBefore(jumuahTime, PRE_PRAYER_NOTICE_MINUTES) && currentSeconds === 0) triggerPrePrayerNotice('Jumu\'ah')
     const jumuahMinutes = toMinutes(jumuahTime)
     if (currentMinutes === jumuahMinutes && currentSeconds === 0) {
       triggerIqamahForPrayer({ name: 'Jumu\'ah', arabic: 'الجمعة', adhan: jumuahTime, iqamah: jumuahTime, icon: '✦' })
