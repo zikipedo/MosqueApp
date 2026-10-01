@@ -1500,7 +1500,6 @@ const render = () => {
       <div class="ticker-content">
         <div class="ticker-track">
           <span>${ticker}</span>
-          <span>${ticker}</span>
         </div>
       </div>
     </div>
@@ -1518,8 +1517,31 @@ const render = () => {
     <div class="post-prayer-notice"><img src="${postPrayerNoticeImage}" alt="Ensemble, prenons soin de l'environnement de notre mosquée"></div>` : ''}
   </div>`
 
+  syncTicker()
   bindEvents()
 }
+
+// Bandeau ACTUALITÉS : vitesse constante, et l'animation reprend là où elle en était après chaque re-render
+// (sinon la synchro serveur toutes les 5 s la relance depuis le début et la fin du texte n'est jamais visible)
+const TICKER_SPEED_PX_PER_SEC = 70
+const tickerStartedAt = performance.now()
+const syncTicker = () => {
+  const content = document.querySelector<HTMLElement>('.ticker-content')
+  const track = document.querySelector<HTMLElement>('.ticker-track')
+  if (!content || !track) return
+  track.innerHTML = `<span>${ticker}</span>`
+  const textWidth = track.querySelector('span')!.getBoundingClientRect().width
+  if (textWidth <= 0) return
+  // Assez de copies pour remplir le bandeau, puis on double le tout pour une boucle sans trou (translateX -50%)
+  const copies = Math.max(1, Math.ceil(content.clientWidth / textWidth))
+  track.innerHTML = Array.from({ length: copies * 2 }, () => `<span>${ticker}</span>`).join('')
+  const duration = (textWidth * copies) / TICKER_SPEED_PX_PER_SEC
+  const elapsed = (performance.now() - tickerStartedAt) / 1000
+  track.style.animationDuration = `${duration}s`
+  track.style.animationDelay = `-${elapsed % duration}s`
+}
+window.addEventListener('resize', syncTicker)
+void document.fonts?.ready.then(syncTicker)
 
 const bindEvents = () => {
   refreshDateUI()
@@ -1867,8 +1889,7 @@ const bindEvents = () => {
   })
   document.querySelector<HTMLInputElement>('#ticker')?.addEventListener('input', (event) => {
     ticker = (event.target as HTMLInputElement).value
-    const labels = document.querySelectorAll('.ticker div span')
-    labels.forEach((label) => label.textContent = ticker)
+    syncTicker()
   })
   document.querySelector<HTMLButtonElement>('#save-ticker')?.addEventListener('click', async () => {
     await patchMosqueSettings({ ticker }).catch(() => { })
