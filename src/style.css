@@ -301,11 +301,13 @@ h2 { font-size: 24px; font-weight: 500; }
 .prayer-card.next .prayer-name strong { color: #fff8ee; }
 .prayer-card.next .prayer-name span { color: #e8c981; }
 
-/* Time pair — 2 colonnes côte à côte : ADHAN | IQAMAH */
+/* Time pair — une ligne par heure (ADHAN puis IQAMAH), libellé à gauche,
+   heure à droite : laisse toute la largeur de la carte aux chiffres pour
+   une lecture de loin sur écran public */
 .prayer-card .time-pair {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  grid-template-columns: 1fr;
+  gap: 4px;
   padding-top: 8px;
   border-top: 1px solid var(--line);
   overflow: hidden;
@@ -313,15 +315,16 @@ h2 { font-size: 24px; font-weight: 500; }
 .prayer-card.next .time-pair { border-color: #6b2a37; }
 .prayer-card .time-pair > div {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
   overflow: hidden;
 }
 .time-pair small {
   display: block;
   color: #4a3e36;
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 16px);
   font-weight: 800;
   letter-spacing: .08em;
   white-space: nowrap;
@@ -330,10 +333,11 @@ h2 { font-size: 24px; font-weight: 500; }
   display: block;
   min-width: 0;
   color: var(--ink);
-  font-size: clamp(23px, 1.8vw, 29px);
-  font-weight: 700;
+  font-size: clamp(28px, 2.7vw, 60px);
+  font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1.12;
+  line-height: 1.08;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
@@ -391,7 +395,7 @@ h2 { font-size: 24px; font-weight: 500; }
 }
 .special-hour {
   margin-left: auto;
-  font-size: clamp(24px, 1.85vw, 30px);
+  font-size: clamp(30px, 2.8vw, 60px);
   font-weight: 700;
   color: var(--gold);
   letter-spacing: -0.02em;
@@ -461,18 +465,19 @@ h2 { font-size: 24px; font-weight: 500; }
   text-align: right;
 }
 .clock-inline .clock span {
-  font-size: 72px;
+  font-size: clamp(72px, 6.5vw, 140px);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--wine);
   line-height: 1;
 }
 .clock-inline .clock small {
-  font-size: 12px;
+  font-size: clamp(12px, 0.9vw, 18px);
   color: var(--muted);
 }
 .clock-inline .clock-countdown {
   margin-top: 8px;
-  font-size: 18px;
+  font-size: clamp(18px, 1.5vw, 30px);
   font-weight: 700;
   color: var(--wine);
 }
@@ -2352,7 +2357,7 @@ body.mobile-mode::before {
   }
   .prayer-name strong { font-size: 14px; }
   .prayer-name span { font-size: 10px; }
-  .time-pair time { font-size: 14px; }
+  .time-pair time { font-size: 24px; }
   .calendar-panel { padding: 12px; }
   .calendar-head h2 { font-size: 18px; }
   .days { gap: 4px; }
@@ -2447,13 +2452,3 @@ body.mobile-mode::before {
    lui-même, le body pouvait autoriser le scroll mais le viewport restait bloqué. */
 html.admin-mode, body.admin-mode { overflow-y: auto !important; height: auto; }
 .app-shell.admin-shell { height: auto; min-height: 100vh; overflow: visible; }
-
-/* ══════════════════════════════════════
-   RESPONSIVE — grand écran (1600px+)
-   Assure que les heures ADHAN/IQAMAH restent visibles sur les très grands écrans
-══════════════════════════════════════ */
-@media (min-width: 1600px) {
-  .time-pair time {
-    font-size: 13px;
-  }
-}
